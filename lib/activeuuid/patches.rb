@@ -102,6 +102,20 @@ module ActiveUUID
       end
     end
 
+    module HasAndBelongsToManyAssociationPreloader
+      extend ActiveSupport::Concern
+
+      included do
+        def records_for_with_conversion(ids)
+          records_for_without_conversion(ids).each do |record|
+            record[association_key_name] = UUIDTools::UUID.parse_raw(record[association_key_name])
+          end
+        end
+
+        alias_method_chain :records_for, :conversion
+      end
+    end
+
     def self.apply!
       ActiveRecord::ConnectionAdapters::Table.send :include, Migrations if defined? ActiveRecord::ConnectionAdapters::Table
       ActiveRecord::ConnectionAdapters::TableDefinition.send :include, Migrations if defined? ActiveRecord::ConnectionAdapters::TableDefinition
@@ -112,6 +126,8 @@ module ActiveUUID
       ActiveRecord::ConnectionAdapters::Mysql2Adapter.send :include, Quoting if defined? ActiveRecord::ConnectionAdapters::Mysql2Adapter
       ActiveRecord::ConnectionAdapters::SQLite3Adapter.send :include, Quoting if defined? ActiveRecord::ConnectionAdapters::SQLite3Adapter
       ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send :include, PostgreSQLQuoting if defined? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
+
+      ActiveRecord::Associations::Preloader::HasAndBelongsToMany.send :include, HasAndBelongsToManyAssociationPreloader
     end
   end
 end
