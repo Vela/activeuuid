@@ -25,6 +25,11 @@ module UUIDTools
       hexdigest.upcase
     end
 
+    # YAML.dump
+    def encode_with coder
+      coder.represent_scalar nil, self.to_s
+    end
+
     def ==(other)
       self.to_s == other.to_s
     end
